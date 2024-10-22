@@ -1,0 +1,25 @@
+minimum_cumulusci_version: '3.93.0'
+project:
+    name: Salesforce-LWC-S3-Integration
+    package:
+        name: Salesforce-LWC-S3-Integration
+        api_version: '62.0'
+    git:
+        default_branch: 'main'
+    source_format: sfdx
+
+tasks:
+    robot:
+        options:
+            suites: robot/Salesforce-LWC-S3-Integration/tests
+            options:
+                outputdir: robot/Salesforce-LWC-S3-Integration/results
+
+    robot_testdoc:
+        options:
+            path: robot/Salesforce-LWC-S3-Integration/tests
+            output: robot/Salesforce-LWC-S3-Integration/doc/Salesforce-LWC-S3-Integration_tests.html
+
+    run_tests:
+        options:
+            required_org_code_coverage_percent: 75
