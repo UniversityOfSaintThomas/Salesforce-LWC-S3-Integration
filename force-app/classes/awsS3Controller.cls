@@ -3,7 +3,7 @@
  */
 
 
-public with sharing class AWS_S3Controller {
+public with sharing class awsS3Controller {
 
     @AuraEnabled
     public static void listBucketObjects() {
@@ -40,14 +40,20 @@ public with sharing class AWS_S3Controller {
     }
 
     @AuraEnabled
-    public static void addObjectsToBucket() {
-        String fileNameToCreate = 'BytesInTheCloud.txt';
-        String fileContent = 'Greetings from the cloud! Your data is safe and sound in S3.';
+    public static void addObjectsToBucket(String fileName, String fileType, Id recordId, String base64FileContent) {
+
+        System.debug('fileName: ' + fileName);
+        System.debug('fileType: ' + fileType);
+        System.debug('recordId: ' + recordId);
+        System.debug('base64FileContent: ' + base64FileContent);
+
+        // Decode the Base64 content
+        Blob fileContent = EncodingUtil.base64Decode(base64FileContent);
 
         HttpRequest request = new HttpRequest();
         request.setMethod('PUT');
-        request.setBody(fileContent);
-        request.setEndpoint('callout:AWS_S3/' + fileNameToCreate);
+        request.setBodyAsBlob(fileContent);
+        request.setEndpoint('callout:AWS_S3/' + fileName);
 
         Http http = new Http();
         HttpResponse res = http.send(request);
@@ -70,7 +76,7 @@ public with sharing class AWS_S3Controller {
         HttpResponse res = http.send(request);
 
         //Checkpoint
-        Assert.areEqual(200,res.getStatusCode());
+        Assert.areEqual(200, res.getStatusCode());
     }
 
     @AuraEnabled
@@ -85,7 +91,7 @@ public with sharing class AWS_S3Controller {
         HttpResponse res = http.send(request);
 
         //Checkpoint
-        Assert.areEqual(204,res.getStatusCode());
+        Assert.areEqual(204, res.getStatusCode());
     }
 
 }
