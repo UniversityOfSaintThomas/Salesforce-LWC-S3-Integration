@@ -2,27 +2,47 @@
  * Created by Thaddaeus Dahlberg, Software Engineer, University of St. Thomas on 10/23/2024.
  */
 
-import {LightningElement, api} from 'lwc';
+import {LightningElement, api, track} from 'lwc';
 import addObjectsToBucket from '@salesforce/apex/awsS3Controller.addObjectsToBucket';
+import findObjectsInBucket from '@salesforce/apex/awsS3Controller.findObject';
 
 export default class AmazonS3DirectoryImage extends LightningElement {
 
     @api recordId;
+    @api objectAPIName;
+    @api imageLinkField;
 
     isUploading = false;
+    @track showSpinner = false ;
+    @track currentImageULR;
 
     get acceptedFormats() {
         return ['.jpg', '.jpeg', '.gif', '.png'];
     }
 
+    //Get the current Image by querying the s3 bucket for recordId;
+    connectedCallback() {
+        findObjectsInBucket({recordId: this.recordId, deletePrevious: false})
+            .then(result => {
+                console.log('result: ' + result);
+                if (result) {
+                    this.currentImageULR = result;
+                }
+            })
+            .catch(error => {
+                console.log('error: ' + error);
+            })
+    };
+
     handleUploadFile(event) {
         console.log('handleUploadFinished');
         if (event.detail.files && event.detail.files.length) {
             const uploadedFiles = event.detail.files;
+            this.showSpinner = true;
             if (uploadedFiles.length > 0) {
 
                 const imgFile = event.detail.files[0];
-                console.log('imgFile: ' + JSON.stringify(imgFile, null, 2));
+
                 const apexParams = {
                     fileName: imgFile.name,
                     fileType: imgFile.type,
@@ -47,7 +67,7 @@ export default class AmazonS3DirectoryImage extends LightningElement {
                         .catch(error => {
                             console.log('error: ' + error);
                         });
-
+                    this.showSpinner = false;
                 });
                 fileReader.readAsDataURL(imgFile);
             }
