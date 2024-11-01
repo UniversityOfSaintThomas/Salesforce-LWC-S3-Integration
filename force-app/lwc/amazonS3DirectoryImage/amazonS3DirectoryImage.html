@@ -4,24 +4,26 @@
 
 <!-- Amazon S3 Directory Image -->
 <template>
-    <template if:true={currentImageULR}>
-        <div class="slds-m-around_medium">
-            <img src={currentImageULR} alt="Directory Image" style="width: 100%; height: auto;"/>
-        </div>
-    </template>
-    <template if:true={showSpinner}>
-        <lightning-spinner alternative-text="Uploading..." size="medium"></lightning-spinner>
-    </template>
+    <div class="slds-p-around_medium slds-box_border slds-box_small">
+        <div class="slds-is-relative slds-p-around_small">
+            <template if:true={showSpinner}>
+                <lightning-spinner alternative-text="Uploading..." size="medium"></lightning-spinner>
+            </template>
 
-    <lightning-input
-            type="file"
-            label="Upload a directory image"
-            name="directoryImageUploader"
-            accept={acceptedFormats}
-            onchange={handleUploadFile}
-            multiple=false
-            disabled={isUploading}
-            class="slds-m-top_medium"
-    >
-    </lightning-input>
+            <template if:true={currentImageULR}>
+                <img src={currentImageULR} alt="Directory Image" style="max-width: 100%;"/>
+            </template>
+
+            <lightning-input
+                    type="file"
+                    label="Upload an image (jpg, jpeg, gif, png)"
+                    name="directoryImageUploader"
+                    accept={acceptedFormats}
+                    onchange={handleUploadFile}
+                    multiple=false
+                    disabled={showSpinner}
+            >
+            </lightning-input>
+        </div>
+    </div>
 </template>
