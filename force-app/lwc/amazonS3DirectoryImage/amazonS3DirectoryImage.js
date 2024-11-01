@@ -9,7 +9,6 @@ import findObjectsInBucket from '@salesforce/apex/awsS3Controller.findObject';
 export default class AmazonS3DirectoryImage extends LightningElement {
 
     @api recordId;
-    @api objectAPIName;
     @api imageLinkField;
     @api imageMaxWidth;
     @api imageMaxHeight;
@@ -45,6 +44,7 @@ export default class AmazonS3DirectoryImage extends LightningElement {
         if (event.detail.files && event.detail.files.length) {
             this.showSpinner = true;
             this.currentImageULR = null;
+            console.log('this.objectAPIName: ' + this.objectAPIName);
             const uploadedFiles = event.detail.files;
             if (uploadedFiles.length > 0) {
                 const imgFile = event.detail.files[0];
@@ -100,23 +100,18 @@ export default class AmazonS3DirectoryImage extends LightningElement {
         const copyContext = canvasCopy.getContext("2d");
         const canvas = document.createElement("canvas");
         const canvasContext = canvas.getContext("2d");
-
+        let ratio;
         if (mode === 'fit') {
-            const ratio = Math.max(targetWidth / imgWidth, targetHeight / imgHeight);
-            newWidth = imgWidth * ratio;
-            newHeight = imgHeight * ratio;
-        } else if (mode === 'resize') {
-            const ratio = Math.min(targetWidth / imgWidth, targetHeight / imgHeight);
-            newWidth = imgWidth * ratio;
-            newHeight = imgHeight * ratio;
-
-            return canvasCopy.toDataURL();
+            ratio = Math.max(targetWidth / imgWidth, targetHeight / imgHeight);
+        } else {
+            ratio = Math.min(targetWidth / imgWidth, targetHeight / imgHeight);
         }
-
+        newWidth = imgWidth * ratio;
+        newHeight = imgHeight * ratio;
         canvasCopy.width = newWidth;
         canvasCopy.height = newHeight;
         copyContext.drawImage(img, 0, 0, newWidth, newHeight);
-        if(mode === 'resize'){
+        if (mode === 'resize') {
             return canvasCopy.toDataURL();
         }
         canvas.width = targetWidth;
