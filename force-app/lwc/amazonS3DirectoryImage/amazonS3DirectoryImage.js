@@ -9,7 +9,6 @@ import findObjectsInBucket from '@salesforce/apex/awsS3Controller.findObject';
 export default class AmazonS3DirectoryImage extends LightningElement {
 
     @api recordId;
-    @api imageLinkField;
     @api imageMaxWidth;
     @api imageMaxHeight;
     @api recordField;
@@ -49,10 +48,13 @@ export default class AmazonS3DirectoryImage extends LightningElement {
             if (uploadedFiles.length > 0) {
                 const imgFile = event.detail.files[0];
 
+                console.log('imageLinkField: ' + this.recordField);
+
                 const apexParams = {
                     fileName: imgFile.name,
                     fileType: imgFile.type,
-                    recordId: this.recordId
+                    recordId: this.recordId,
+                    recordField: this.recordField,
                 };
 
                 const fileReader = new FileReader();

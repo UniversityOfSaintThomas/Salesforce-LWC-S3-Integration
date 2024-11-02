@@ -42,15 +42,35 @@ public with sharing class awsS3Controller {
     }
 
     @AuraEnabled
-    public static String addObjectsToBucket(String fileName, String fileType, Id recordId, String base64FileContent) {
+    public static String addObjectsToBucket(String fileName, String fileType, Id recordId, String base64FileContent, String recordField) {
         String fileSuffix = fileName.substringAfterLast('.');
         Blob fileBody = EncodingUtil.base64Decode(base64FileContent);
+
+        Id myRecordId;
+        String sObjName;
+        try {
+            myRecordId = recordId;
+            sObjName = myRecordId.getSObjectType().getDescribe().getName();
+        } catch (Exception e) {
+            System.debug('Error: ' + e.getMessage());
+        }
 
         findObject(recordId, true);
         fileName = '/' + md5fileName(recordId) + '.' + fileSuffix;
         HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
+        String imageLink = bucketLink + fileName.removeStart('/');
 
-        return res.getStatusCode() == 200 ? bucketLink + fileName.removeStart('/') + '?t=' + Datetime.now().getTime() : '';
+        if (res.getStatusCode() == 200) {
+            //Record the image link to the record
+            System.debug('imageLinkField: ' + recordField + ' sObjName: ' + sObjName);
+            if (String.isNotBlank(recordField) && String.isNotBlank(sObjName)) {
+                SObject sObj = Database.query('SELECT Id, ' + recordField + ' FROM ' + sObjName + ' WHERE Id = :myRecordId');
+                sObj.put(recordField, imageLink);
+                update sObj;
+            }
+            return imageLink + '?t=' + Datetime.now().getTime();
+        }
+        return '';
     }
 
     private static void deleteOldFile(List<String> keysToDelete) {
