@@ -15,7 +15,8 @@ export default class AmazonS3DirectoryImage extends LightningElement {
     @api imageMode;
 
     @track showSpinner = false;
-    @track currentImageULR;
+    @track currentImageULR = '';
+    @track error = {};
 
     get acceptedFormats() {
         return ['.jpg', '.jpeg', '.gif', '.png'];
@@ -23,6 +24,7 @@ export default class AmazonS3DirectoryImage extends LightningElement {
 
     //Get the current Image by querying the s3 bucket for recordId;
     connectedCallback() {
+        console.log('recordId: ' + this.recordId);
         this.showSpinner = true;
         findObjectsInBucket({recordId: this.recordId, deletePrevious: false})
             .then(result => {
@@ -32,7 +34,8 @@ export default class AmazonS3DirectoryImage extends LightningElement {
                 }
             })
             .catch(error => {
-                console.log('error: ' + error);
+                this.error = error;
+                console.log('error callback: ' + error);
                 this.showSpinner = false;
             })
     };
@@ -41,54 +44,77 @@ export default class AmazonS3DirectoryImage extends LightningElement {
     //Handle the file upload
     handleUploadFile(event) {
         if (event.detail.files && event.detail.files.length) {
+            const uploadedFiles = event.detail.files;
+            const imgFile = uploadedFiles[0];
+            const fileType = imgFile.type;
+
+            // Validate file type
+            const acceptedFormats = this.acceptedFormats;
+            const isValidFormat = acceptedFormats.some(format => fileType.endsWith(format.replace('.', '')));
+
+            if (!isValidFormat) {
+                this.error = {};
+                this.error = 'Invalid file type. Accepted formats are: ' + acceptedFormats.join(', ');
+                console.log(this.error);
+                this.showSpinner = false;
+                return;
+            }
+
             this.showSpinner = true;
             this.currentImageULR = null;
-            console.log('this.objectAPIName: ' + this.objectAPIName);
-            const uploadedFiles = event.detail.files;
-            if (uploadedFiles.length > 0) {
-                const imgFile = event.detail.files[0];
 
-                console.log('imageLinkField: ' + this.recordField);
+            const apexParams = {
+                fileName: imgFile.name,
+                fileType: imgFile.type,
+                recordId: this.recordId,
+                recordField: this.recordField,
+            };
 
-                const apexParams = {
-                    fileName: imgFile.name,
-                    fileType: imgFile.type,
-                    recordId: this.recordId,
-                    recordField: this.recordField,
+            const fileReader = new FileReader();
+
+            fileReader.onloadend = () => {
+                let result = fileReader.result;
+                // build the base64 string and add it to the apexParams
+                const base64 = 'base64,';
+                const i = result.indexOf(base64) + base64.length;
+                apexParams.base64FileContent = result.substring(i);
+
+                // Create an image element to resize
+                const img = new Image();
+                img.src = result;
+                img.onload = () => {
+                    // Resize the image
+                    const resizedImgDataUrl = this.resizeImg(img, this.imageMaxWidth, this.imageMaxHeight, 0); // Example dimensions and no rotation
+                    const resizedBase64 = resizedImgDataUrl.split(base64)[1];
+                    apexParams.base64FileContent = resizedBase64;
+
+                    // Call the apex method to add the image to the S3 bucket
+                    addObjectsToBucket(apexParams)
+                        .then(result => {
+                            this.currentImageULR = result;
+                            this.showSpinner = false;
+                        })
+                        .catch(error => {
+                            console.log('error: ' + error);
+                            this.error = error;
+                            this.showSpinner = false;
+                        });
                 };
+                img.onerror = (error) => {
+                    console.log('error loading image: ' + error);
+                    this.error = error;
+                    this.showSpinner = false;
+                };
+            };
 
-                const fileReader = new FileReader();
-                fileReader.readAsDataURL(imgFile);
-                fileReader.onloadend = (() => {
-                    let result = fileReader.result;
-                    // build the base64 string and add it to the apexParams
-                    const base64 = 'base64,';
-                    const i = result.indexOf(base64) + base64.length;
-                    apexParams.base64FileContent = result.substring(i);
+            fileReader.onerror = (error) => {
+                console.log('error handle upload: ' + error);
+                this.error = error;
+                this.showSpinner = false;
+            };
+            this.error = '';
+            fileReader.readAsDataURL(imgFile);
 
-                    // Create an image element to resize
-                    const img = new Image();
-                    img.src = result;
-                    img.onload = () => {
-                        // Resize the image
-                        const resizedImgDataUrl = this.resizeImg(img, this.imageMaxWidth, this.imageMaxHeight, 0); // Example dimensions and no rotation
-                        const resizedBase64 = resizedImgDataUrl.split(base64)[1];
-                        apexParams.base64FileContent = resizedBase64;
-
-                        // Call the apex method to add the image to the S3 bucket
-                        addObjectsToBucket(apexParams)
-                            .then(result => {
-                                this.currentImageULR = result;
-
-                                this.showSpinner = false;
-                            })
-                            .catch(error => {
-                                console.log('error: ' + error);
-                                this.showSpinner = false;
-                            });
-                    };
-                });
-            }
         }
     }
 

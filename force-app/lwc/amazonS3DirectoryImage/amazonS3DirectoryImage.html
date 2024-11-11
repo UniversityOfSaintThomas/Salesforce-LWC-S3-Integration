@@ -9,6 +9,9 @@
             <template if:true={showSpinner}>
                 <lightning-spinner alternative-text="Uploading..." size="medium"></lightning-spinner>
             </template>
+            <template if:true={error}>
+                <c-error-panel errors={error}></c-error-panel>
+            </template>
 
             <template if:true={currentImageULR}>
                 <img src={currentImageULR} alt="Directory Image" style="max-width: 100%;"/>
