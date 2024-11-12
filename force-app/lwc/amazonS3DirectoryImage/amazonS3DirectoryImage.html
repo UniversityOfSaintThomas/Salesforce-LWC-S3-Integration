@@ -13,8 +13,13 @@
                 <c-error-panel errors={error}></c-error-panel>
             </template>
 
-            <template if:true={currentImageULR}>
-                <img src={currentImageULR} alt="Directory Image" style="max-width: 100%;"/>
+            <template if:true={imageFound}>
+                <div class="slds-is-relative slds-clear">
+                    <img src={currentImageULR} alt="Directory Image" style="max-width: 100%;"/>
+                    <a onclick={handleDeleteImage} class="slds-m-left_x-small delete-button">
+                        <lightning-icon icon-name="action:delete" alternative-text="Delete" title="Delete" size="small"></lightning-icon>
+                    </a>
+                </div>
             </template>
 
             <lightning-input
@@ -25,6 +30,7 @@
                     onchange={handleUploadFile}
                     multiple=false
                     disabled={showSpinner}
+                    class="slds-clear"
             >
             </lightning-input>
         </div>

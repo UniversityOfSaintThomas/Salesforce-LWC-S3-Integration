@@ -15,8 +15,9 @@ export default class AmazonS3DirectoryImage extends LightningElement {
     @api imageMode;
 
     @track showSpinner = false;
-    @track currentImageULR = '';
-    @track error = {};
+    @track currentImageULR;
+    @track imageFound = false;
+    @track error;
 
     get acceptedFormats() {
         return ['.jpg', '.jpeg', '.gif', '.png'];
@@ -24,21 +25,40 @@ export default class AmazonS3DirectoryImage extends LightningElement {
 
     //Get the current Image by querying the s3 bucket for recordId;
     connectedCallback() {
-        console.log('recordId: ' + this.recordId);
         this.showSpinner = true;
         findObjectsInBucket({recordId: this.recordId, deletePrevious: false})
             .then(result => {
                 if (result) {
                     this.currentImageULR = result;
-                    this.showSpinner = false;
+                    this.imageFound = true;
+                } else {
+                    this.imageFound = false;
                 }
+                this.showSpinner = false;
             })
             .catch(error => {
                 this.error = error;
                 console.log('error callback: ' + error);
                 this.showSpinner = false;
             })
+        console.log('recordId: ' + this.recordId);
+        console.log('imageFound: ' + this.imageFound);
     };
+
+    handleDeleteImage() {
+        this.showSpinner = true;
+        findObjectsInBucket({recordId: this.recordId, deletePrevious: true})
+            .then(result => {
+                this.currentImageULR = null;
+                this.imageFound = false;
+                this.showSpinner = false;
+            })
+            .catch(error => {
+                this.error = error;
+                console.log('error callback: ' + error);
+                this.showSpinner = false;
+            })
+    }
 
 
     //Handle the file upload
@@ -92,6 +112,7 @@ export default class AmazonS3DirectoryImage extends LightningElement {
                     addObjectsToBucket(apexParams)
                         .then(result => {
                             this.currentImageULR = result;
+                            this.imageFound = true;
                             this.showSpinner = false;
                         })
                         .catch(error => {

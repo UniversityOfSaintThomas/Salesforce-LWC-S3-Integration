@@ -30,3 +30,11 @@ Much of this set-up was derived from the [from this tutorial](https://oktana.com
 9. Make sure that "img-src (images)" is checked.
 10. Click "Save"
 
+### Add premissionset to LWC user   
+1. Go to setup > Users
+2. Select the user you want to have access to the LWC
+3. Click on "Permission Set Assignments"
+4. Click on "Edit Assignments"
+5. Add the "AWS S3 User" to the user
+6. Click "Save"
+

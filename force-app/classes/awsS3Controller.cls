@@ -10,7 +10,7 @@ public with sharing class awsS3Controller {
     @AuraEnabled
     public static String findObject(String recordId, Boolean deletePrevious) {
         String fileName = md5fileName(recordId);
-        String imageLink = bucketLink;
+        String imageLink;
         String endPoint = '?prefix=' + EncodingUtil.urlEncode(fileName, 'UTF-8') + '.';
         HttpResponse res = awsS3Request('GET', endPoint, null, '');
 
@@ -26,11 +26,8 @@ public with sharing class awsS3Controller {
                 String key = node.getChildElement('Key', namespace).getText();
                 Datetime lastModified = Datetime.valueOf(node.getChildElement('LastModified', namespace).getText().replace('T', ' ').replace('Z', ''));
                 keysToDelete.add(key);
-
-                if (lastLastModified == null || lastModified < lastLastModified) {
-                    imageLink = bucketLink + key;
-                    lastLastModified = lastModified;
-                }
+                imageLink = bucketLink + key;
+                lastLastModified = lastModified;
             }
         }
 
