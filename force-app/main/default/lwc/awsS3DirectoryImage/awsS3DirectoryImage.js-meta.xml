@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>62.0</apiVersion>
-    <description>Uploads public images to Amazon S3 buicket</description>
+    <description>Uploads public images to AWS S3 bucket</description>
     <isExposed>true</isExposed>
-    <masterLabel>Amazon S3 Directory Image</masterLabel>
+    <masterLabel>AWS S3 Directory Image</masterLabel>
     <targets>
         <target>lightning__AppPage</target>
         <target>lightning__RecordPage</target>
@@ -12,14 +12,14 @@
     </targets>
 
     <targetConfigs>
-        <targetConfig targets="lightning__HomePage,lightning__RecordPage,lightning__FlowScreen">
+        <targetConfig targets="lightning__HomePage,lightning__AppPage,lightning__RecordPage,lightning__FlowScreen">
             <property name="imageMaxWidth" type="Integer" default="800" label="Enter max image width in pixels"/>
             <property name="imageMaxHeight" type="Integer" default="600" label="Enter max image height in pixels"/>
             <property name="imageMode" type="String" default="resize" label="Enter image mode (fit or resize)"
                       datasource="Fit,Resize"/>
             <property name="recordField" type="String" default=""
                       label="Enter the API name of the field on the record your image URL will be recorded"/>
-            <property name="recordId" type="String" label="Record Id" description="Input Record Id as a string or use variable {!recordId}"/>
+            <property name="incomingRecordId" type="String" label="Incoming Record Id" description="Id of the record for which to attach this image."/>
         </targetConfig>
     </targetConfigs>
 

@@ -1,25 +1,49 @@
 minimum_cumulusci_version: '3.93.0'
 project:
+  name: Salesforce-LWC-S3-Integration
+  package:
     name: Salesforce-LWC-S3-Integration
-    package:
-        name: Salesforce-LWC-S3-Integration
-        api_version: '62.0'
-    git:
-        default_branch: 'main'
-    source_format: sfdx
+    api_version: '62.0'
+  git:
+    default_branch: 'main'
+  source_format: sfdx
 
 tasks:
-    robot:
-        options:
-            suites: robot/Salesforce-LWC-S3-Integration/tests
-            options:
-                outputdir: robot/Salesforce-LWC-S3-Integration/results
+  robot:
+    options:
+      suites: robot/Salesforce-LWC-S3-Integration/tests
+      options:
+        outputdir: robot/Salesforce-LWC-S3-Integration/results
 
-    robot_testdoc:
-        options:
-            path: robot/Salesforce-LWC-S3-Integration/tests
-            output: robot/Salesforce-LWC-S3-Integration/doc/Salesforce-LWC-S3-Integration_tests.html
+  robot_testdoc:
+    options:
+      path: robot/Salesforce-LWC-S3-Integration/tests
+      output: robot/Salesforce-LWC-S3-Integration/doc/Salesforce-LWC-S3-Integration_tests.html
 
-    run_tests:
-        options:
-            required_org_code_coverage_percent: 75
+  run_tests:
+    options:
+      required_org_code_coverage_percent: 75
+
+  deploy_permission_set:
+    description: Give System Admins Event Admin Permission Set
+    class_path: cumulusci.tasks.apex.anon.AnonymousApexTask
+    options:
+      namespace_inject: $project_config.project__package__namespace
+      apex: >
+        List<PermissionSet> eventPermissionSets;
+        eventPermissionSets = [SELECT Name, Id FROM PermissionSet WHERE Name = 'AWS_S3_Directory_Image'];
+        
+        List<PermissionSetAssignment> permissionSetList = new List<PermissionSetAssignment>();
+        if (!eventPermissionSets.isEmpty()) {
+            for (User u: [ SELECT ID FROM User WHERE Profile.Name = 'System Administrator' ]) {
+                             permissionSetList.add(new PermissionSetAssignment(PermissionSetId = eventPermissionSets[0].Id, AssigneeId = u.Id));
+            }
+        }
+        if (!permissionSetList.isEmpty()) {
+            upsert permissionSetList;
+        }
+flows:
+  config_dev:
+    steps:
+      3:
+        task: deploy_permission_set

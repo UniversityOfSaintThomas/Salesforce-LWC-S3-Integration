@@ -14,7 +14,7 @@ Much of this set-up was derived from the [from this tutorial](https://oktana.com
 
 1. Got to Setup > Named Credentials. Select the "External Credential" tab.
 2. Click on "AWS S3 Credential" label
-3. Scroll down to Principals and in the "AWS S3 Principal" parameter select edit from the "Actions" dropdown.
+3. Scroll down to Principals and in the "AWS S3 Directory Image " parameter select edit from the "Actions" dropdown.
 4. Enter the "Access Key" ID and the "Access Secret" keys from your AWS account.
 5. Click "Save"
 
@@ -24,7 +24,7 @@ Much of this set-up was derived from the [from this tutorial](https://oktana.com
 3. Copy the URL from the "URL" field.
 4. Go to Setup > Trusted Urls.
 5. Click "New Trusted URL"
-6. Enter API Name: "AWS_S3"
+6. Enter API Name: "Directory_Image_AWS_S3"
 7. Paste the URL you copied in set 3 into the URL field.
 8. Check the "Active" checkbox.
 9. Make sure that "img-src (images)" is checked.
@@ -35,6 +35,6 @@ Much of this set-up was derived from the [from this tutorial](https://oktana.com
 2. Select the user you want to have access to the LWC
 3. Click on "Permission Set Assignments"
 4. Click on "Edit Assignments"
-5. Add the "AWS S3 User" to the user
+5. Add the "AWS S3 Directory Image Principal" to the user
 6. Click "Save"
 

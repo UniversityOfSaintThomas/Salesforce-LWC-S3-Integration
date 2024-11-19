@@ -53,3 +53,12 @@ $RECYCLE.BIN/
 .settings
 
 IlluminatedCloud
+
+# Added by Illuminated Cloud
+.localdev/
+/IlluminatedCloud/
+/out/
+target/
+/.illuminatedCloud/
+**/tsconfig*.json
+**/*.tsbuildinfo

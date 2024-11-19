@@ -3,16 +3,19 @@
  */
 
 import {LightningElement, api, track} from 'lwc';
-import addObjectsToBucket from '@salesforce/apex/awsS3Controller.addObjectsToBucket';
-import findObjectsInBucket from '@salesforce/apex/awsS3Controller.findObject';
+import addObjectsToBucket from '@salesforce/apex/awsDirectoryImageController.addObjectsToBucket';
+import findObjectsInBucket from '@salesforce/apex/awsDirectoryImageController.findObject';
+import { RefreshEvent } from 'lightning/refresh';
 
-export default class AmazonS3DirectoryImage extends LightningElement {
+export default class AwsS3DirectoryImage extends LightningElement {
 
     @api recordId;
     @api imageMaxWidth;
     @api imageMaxHeight;
     @api recordField;
     @api imageMode;
+    @api incomingRecordId;
+
 
     @track showSpinner = false;
     @track currentImageULR;
@@ -26,6 +29,9 @@ export default class AmazonS3DirectoryImage extends LightningElement {
     //Get the current Image by querying the s3 bucket for recordId;
     connectedCallback() {
         this.showSpinner = true;
+        if (this.incomingRecordId) {
+            this.recordId = this.incomingRecordId;
+        }
         findObjectsInBucket({recordId: this.recordId, deletePrevious: false})
             .then(result => {
                 if (result) {
@@ -114,6 +120,7 @@ export default class AmazonS3DirectoryImage extends LightningElement {
                             this.currentImageULR = result;
                             this.imageFound = true;
                             this.showSpinner = false;
+                            this.dispatchEvent(new RefreshEvent());
                         })
                         .catch(error => {
                             console.log('error: ' + error);
@@ -135,6 +142,7 @@ export default class AmazonS3DirectoryImage extends LightningElement {
             };
             this.error = '';
             fileReader.readAsDataURL(imgFile);
+
 
         }
     }

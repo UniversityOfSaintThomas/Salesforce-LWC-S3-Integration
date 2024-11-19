@@ -3,7 +3,7 @@
  */
 
 
-public with sharing class awsS3Controller {
+public with sharing class awsDirectoryImageController {
 
     private final static String bucketLink = 'https://stthomas-dev-salesforce-directory-images.s3.us-east-1.amazonaws.com/';
 
@@ -42,7 +42,19 @@ public with sharing class awsS3Controller {
     public static String addObjectsToBucket(String fileName, String fileType, Id recordId, String base64FileContent, String recordField) {
         String fileSuffix = fileName.substringAfterLast('.');
         Blob fileBody = EncodingUtil.base64Decode(base64FileContent);
+        findObject(recordId, true);
+        fileName = '/' + md5fileName(recordId) + '.' + fileSuffix;
+        HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
+        String imageLink = bucketLink + fileName.removeStart('/');
 
+        if (res.getStatusCode() == 200) {
+            updateRecord(recordId, recordField, imageLink);
+            return imageLink + '?t=' + Datetime.now().getTime();
+        }
+        return '';
+    }
+
+    private static void updateRecord(Id recordId, String recordField, String imageLink) {
         Id myRecordId;
         String sObjName;
         try {
@@ -51,23 +63,19 @@ public with sharing class awsS3Controller {
         } catch (Exception e) {
             System.debug('Error: ' + e.getMessage());
         }
-
-        findObject(recordId, true);
-        fileName = '/' + md5fileName(recordId) + '.' + fileSuffix;
-        HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
-        String imageLink = bucketLink + fileName.removeStart('/');
-
-        if (res.getStatusCode() == 200) {
-            //Record the image link to the record
-            System.debug('imageLinkField: ' + recordField + ' sObjName: ' + sObjName);
-            if (String.isNotBlank(recordField) && String.isNotBlank(sObjName)) {
-                SObject sObj = Database.query('SELECT Id, ' + recordField + ' FROM ' + sObjName + ' WHERE Id = :myRecordId');
-                sObj.put(recordField, imageLink);
-                update sObj;
+        if (String.isNotBlank(recordField) && String.isNotBlank(sObjName)) {
+            SObject sObj = Database.query('SELECT Id, ' + recordField + ' FROM ' + sObjName + ' WHERE Id = :myRecordId');
+            Schema.SObjectType sObjectType = Schema.getGlobalDescribe().get(sObjName);
+            Schema.DescribeSObjectResult describeSObjectResult = sObjectType.getDescribe();
+            Schema.DescribeFieldResult fieldResult = describeSObjectResult.fields.getMap().get(recordField).getDescribe();
+            String imageLinkField = imageLink;
+            if (fieldResult.isHtmlFormatted()) {
+                imageLinkField = '<img src="' + imageLinkField + '" />';
             }
-            return imageLink + '?t=' + Datetime.now().getTime();
+
+            sObj.put(recordField, imageLinkField);
+            update sObj;
         }
-        return '';
     }
 
     private static void deleteOldFile(List<String> keysToDelete) {
@@ -75,7 +83,7 @@ public with sharing class awsS3Controller {
         for (String fileName : keysToDelete) {
             HttpRequest request = new HttpRequest();
             request.setMethod('DELETE');
-            request.setEndpoint('callout:AWS_S3/' + fileName);
+            request.setEndpoint('callout:AWS_S3_Directory_Image/' + fileName);
             HttpResponse res = http.send(request);
             Assert.areEqual(204, res.getStatusCode());
         }
@@ -85,7 +93,7 @@ public with sharing class awsS3Controller {
         HttpRequest request = new HttpRequest();
         request.setMethod(method);
         if (body != null) request.setBodyAsBlob(body);
-        request.setEndpoint('callout:AWS_S3' + endpoint);
+        request.setEndpoint('callout:AWS_S3_Directory_Image' + endpoint);
         if (String.isNotBlank(contentType)) request.setHeader('Content-Type', contentType);
 
         HttpResponse resp = new Http().send(request);
