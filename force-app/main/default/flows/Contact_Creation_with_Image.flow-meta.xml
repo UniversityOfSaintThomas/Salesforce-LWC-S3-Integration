@@ -80,7 +80,7 @@
             <inputParameters>
                 <name>incomingRecordId</name>
                 <value>
-                    <elementReference>Create_Contact_Record</elementReference>
+                    <elementReference>contactVar.Id</elementReference>
                 </value>
             </inputParameters>
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>

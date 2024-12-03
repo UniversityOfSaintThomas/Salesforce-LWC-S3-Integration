@@ -39,11 +39,15 @@ public with sharing class awsDirectoryImageController {
     }
 
     @AuraEnabled
-    public static String addObjectsToBucket(String fileName, String fileType, Id recordId, String base64FileContent, String recordField) {
-        String fileSuffix = fileName.substringAfterLast('.');
+    public static String addObjectsToBucket(String fileType, Id recordId, String base64FileContent, String recordField) {
+        System.debug('fileType: ' + fileType + ' recordId: ' + recordId + ' recordField: ' + recordField);
+        String fileSuffix = fileType.replace('image/', '');
+        if (fileSuffix == 'jpeg') {
+            fileSuffix = 'jpg';
+        }
         Blob fileBody = EncodingUtil.base64Decode(base64FileContent);
         findObject(recordId, true);
-        fileName = '/' + md5fileName(recordId) + '.' + fileSuffix;
+        String fileName = '/' + md5fileName(recordId) + '.' + fileSuffix;
         HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
         String imageLink = bucketLink + fileName.removeStart('/');
 
