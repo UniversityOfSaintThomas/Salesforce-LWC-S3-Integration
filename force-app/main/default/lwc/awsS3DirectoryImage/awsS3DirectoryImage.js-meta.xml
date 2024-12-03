@@ -15,11 +15,13 @@
         <targetConfig targets="lightning__HomePage,lightning__AppPage,lightning__RecordPage,lightning__FlowScreen">
             <property name="imageMaxWidth" type="Integer" default="800" label="Enter max image width in pixels"/>
             <property name="imageMaxHeight" type="Integer" default="600" label="Enter max image height in pixels"/>
-            <property name="imageMode" type="String" default="resize" label="Enter image mode (fit or resize)"
-                      datasource="Fit,Resize"/>
-            <property name="recordField" type="String" default=""
+            <property name="imageMode" type="String" default="resize" label="Enter image mode (fit or resize)"/>
+            <property name="fileNameSuffix" type="String"
+                      label="This will be applied to the end of file names saved in s3 making the file name unique"/>
+            <property name="recordField" type="String"
                       label="Enter the API name of the field on the record your image URL will be recorded"/>
-            <property name="incomingRecordId" type="String" label="Incoming Record Id" description="Id of the record for which to attach this image."/>
+            <property name="incomingRecordId" type="String" label="Incoming Record Id"
+                      description="Id of the record for which to attach this image."/>
         </targetConfig>
     </targetConfigs>
 

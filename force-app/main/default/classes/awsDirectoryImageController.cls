@@ -8,17 +8,17 @@ public with sharing class awsDirectoryImageController {
     private final static String bucketLink = 'https://stthomas-dev-salesforce-directory-images.s3.us-east-1.amazonaws.com/';
 
     @AuraEnabled
-    public static String findObject(String recordId, Boolean deletePrevious) {
+    public static String findObject(String recordId, Boolean deletePrevious, String fileNameSuffix) {
         String fileName = md5fileName(recordId);
+        if (String.isNotBlank(fileNameSuffix)) {
+            fileName += fileNameSuffix;
+        }
         String imageLink;
         String endPoint = '?prefix=' + EncodingUtil.urlEncode(fileName, 'UTF-8') + '.';
         HttpResponse res = awsS3Request('GET', endPoint, null, '');
-        System.debug('res-body: ' + res.getBodyDocument());
         String namespace = 'http://s3.amazonaws.com/doc/2006-03-01/';
         Dom.Document doc = res.getBodyDocument();
-        System.debug('doc: ' + doc);
         Dom.XmlNode root = doc.getRootElement();
-        System.debug('root: ' + root);
 
         List<String> keysToDelete = new List<String>();
         Datetime lastLastModified = null;
@@ -41,15 +41,15 @@ public with sharing class awsDirectoryImageController {
     }
 
     @AuraEnabled
-    public static String addObjectsToBucket(String fileType, Id recordId, String base64FileContent, String recordField) {
+    public static String addObjectsToBucket(String fileType, Id recordId, String base64FileContent, String recordField, String fileNameSuffix) {
 
         String fileSuffix = fileType.replace('image/', '');
         if (fileSuffix == 'jpeg') {
             fileSuffix = 'jpg';
         }
         Blob fileBody = EncodingUtil.base64Decode(base64FileContent);
-        findObject(recordId, true);
-        String fileName = '/' + md5fileName(recordId) + '.' + fileSuffix;
+        findObject(recordId, true, fileNameSuffix);
+        String fileName = '/' + md5fileName(recordId) + fileNameSuffix + '.' + fileSuffix;
         HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
         String imageLink = bucketLink + fileName.removeStart('/');
 

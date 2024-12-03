@@ -14,9 +14,9 @@
             </template>
 
             <template if:true={imageFound}>
-                <div class="slds-is-relative slds-clear">
+                <div class="slds-is-relative" style="float:left;">
                     <img src={currentImageULR} alt="Directory Image" style="max-width: 100%;"/>
-                    <a onclick={handleDeleteImage} class="slds-m-left_x-small delete-button">
+                    <a onclick={handleDeleteImage} class="slds-m-left_x-small delete-button slds-is-absolute">
                         <lightning-icon icon-name="action:delete" alternative-text="Delete" title="Delete" size="small"></lightning-icon>
                     </a>
                 </div>

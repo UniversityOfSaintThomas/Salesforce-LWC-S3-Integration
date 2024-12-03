@@ -14,6 +14,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
     @api imageMaxHeight;
     @api recordField;
     @api imageMode;
+    @api fileNameSuffix;
     @api incomingRecordId;
 
     @track showSpinner = false;
@@ -32,7 +33,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
         if (this.incomingRecordId) {
             this.recordId = this.incomingRecordId;
         }
-        findObjectsInBucket({recordId: this.recordId, deletePrevious: false})
+        findObjectsInBucket({recordId: this.recordId, deletePrevious: false, fileNameSuffix: this.fileNameSuffix})
             .then(result => {
                 if (result) {
                     this.currentImageULR = result;
@@ -50,7 +51,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
 
     handleDeleteImage() {
         this.showSpinner = true;
-        findObjectsInBucket({recordId: this.recordId, deletePrevious: true})
+        findObjectsInBucket({recordId: this.recordId, deletePrevious: true, fileNameSuffix: this.fileNameSuffix})
             .then(result => {
                 this.currentImageULR = null;
                 this.imageFound = false;
@@ -90,7 +91,8 @@ export default class AwsS3DirectoryImage extends LightningElement {
                     fileType: dataType,
                     recordId: this.recordId,
                     base64FileContent: base64Value,
-                    recordField: this.recordField
+                    recordField: this.recordField,
+                    fileNameSuffix: this.fileNameSuffix
                 })
                     .then(result => {
                         this.currentImageULR = result;

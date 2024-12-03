@@ -68,7 +68,7 @@
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <fields>
-            <name>uploadImage</name>
+            <name>uploadBusinessImage</name>
             <extensionName>c:awsS3DirectoryImage</extensionName>
             <fieldType>ComponentInstance</fieldType>
             <inputParameters>
@@ -81,6 +81,44 @@
                 <name>incomingRecordId</name>
                 <value>
                     <elementReference>contactVar.Id</elementReference>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>fileNameSuffix</name>
+                <value>
+                    <stringValue>_Business</stringValue>
+                </value>
+            </inputParameters>
+            <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
+            <isRequired>true</isRequired>
+            <storeOutputAutomatically>true</storeOutputAutomatically>
+        </fields>
+        <fields>
+            <name>uploadPersonPic</name>
+            <extensionName>c:awsS3DirectoryImage</extensionName>
+            <fieldType>ComponentInstance</fieldType>
+            <inputParameters>
+                <name>imageMaxHeight</name>
+                <value>
+                    <numberValue>400.0</numberValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>imageMaxWidth</name>
+                <value>
+                    <numberValue>400.0</numberValue>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>incomingRecordId</name>
+                <value>
+                    <elementReference>contactVar.Id</elementReference>
+                </value>
+            </inputParameters>
+            <inputParameters>
+                <name>fileNameSuffix</name>
+                <value>
+                    <stringValue>_Person</stringValue>
                 </value>
             </inputParameters>
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
@@ -97,7 +135,7 @@
             <targetReference>Contact_Creation</targetReference>
         </connector>
     </start>
-    <status>Active</status>
+    <status>Draft</status>
     <variables>
         <name>contactVar</name>
         <dataType>SObject</dataType>

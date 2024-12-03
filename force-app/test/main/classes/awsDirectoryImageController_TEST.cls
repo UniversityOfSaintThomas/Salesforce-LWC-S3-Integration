@@ -50,7 +50,7 @@ private class awsDirectoryImageController_TEST {
 
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.findObject(recordId, deletePrevious);
+        String result = awsDirectoryImageController.findObject(recordId, deletePrevious, '');
         Test.stopTest();
 
         // Verify
@@ -70,7 +70,7 @@ private class awsDirectoryImageController_TEST {
 
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, recordField);
+        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, recordField, '');
         Test.stopTest();
 
         // Verify
