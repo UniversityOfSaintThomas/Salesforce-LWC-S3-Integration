@@ -13,10 +13,12 @@ public with sharing class awsDirectoryImageController {
         String imageLink;
         String endPoint = '?prefix=' + EncodingUtil.urlEncode(fileName, 'UTF-8') + '.';
         HttpResponse res = awsS3Request('GET', endPoint, null, '');
-
+        System.debug('res-body: ' + res.getBodyDocument());
         String namespace = 'http://s3.amazonaws.com/doc/2006-03-01/';
         Dom.Document doc = res.getBodyDocument();
+        System.debug('doc: ' + doc);
         Dom.XmlNode root = doc.getRootElement();
+        System.debug('root: ' + root);
 
         List<String> keysToDelete = new List<String>();
         Datetime lastLastModified = null;
@@ -40,7 +42,7 @@ public with sharing class awsDirectoryImageController {
 
     @AuraEnabled
     public static String addObjectsToBucket(String fileType, Id recordId, String base64FileContent, String recordField) {
-        System.debug('fileType: ' + fileType + ' recordId: ' + recordId + ' recordField: ' + recordField);
+
         String fileSuffix = fileType.replace('image/', '');
         if (fileSuffix == 'jpeg') {
             fileSuffix = 'jpg';
@@ -58,6 +60,7 @@ public with sharing class awsDirectoryImageController {
         return '';
     }
 
+    @TestVisible
     private static void updateRecord(Id recordId, String recordField, String imageLink) {
         Id myRecordId;
         String sObjName;
@@ -82,6 +85,7 @@ public with sharing class awsDirectoryImageController {
         }
     }
 
+    @TestVisible
     private static void deleteOldFile(List<String> keysToDelete) {
         Http http = new Http();
         for (String fileName : keysToDelete) {
@@ -93,6 +97,7 @@ public with sharing class awsDirectoryImageController {
         }
     }
 
+    @TestVisible
     private static HttpResponse awsS3Request(String method, String endpoint, Blob body, String contentType) {
         HttpRequest request = new HttpRequest();
         request.setMethod(method);
@@ -105,6 +110,7 @@ public with sharing class awsDirectoryImageController {
         return resp;
     }
 
+    @TestVisible
     private static String md5fileName(String originalFilename) {
         Blob fileNameBlob = Blob.valueOf(originalFilename + 'USTDirImage');
         Blob hasFileNameBlob = Crypto.generateDigest('MD5', fileNameBlob);

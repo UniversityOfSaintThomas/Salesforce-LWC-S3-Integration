@@ -97,7 +97,7 @@
             <targetReference>Contact_Creation</targetReference>
         </connector>
     </start>
-    <status>Draft</status>
+    <status>Active</status>
     <variables>
         <name>contactVar</name>
         <dataType>SObject</dataType>
