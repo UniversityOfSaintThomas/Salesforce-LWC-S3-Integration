@@ -68,13 +68,18 @@
         <allowFinish>true</allowFinish>
         <allowPause>true</allowPause>
         <fields>
+            <name>BusinessDirectoryImageText</name>
+            <fieldText>&lt;p&gt;Please upload a business logo&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
+        </fields>
+        <fields>
             <name>uploadBusinessImage</name>
             <extensionName>c:awsS3DirectoryImage</extensionName>
             <fieldType>ComponentInstance</fieldType>
             <inputParameters>
-                <name>recordField</name>
+                <name>imageField</name>
                 <value>
-                    <stringValue>Directory_Image__c</stringValue>
+                    <stringValue>Business_Directory_Image__c</stringValue>
                 </value>
             </inputParameters>
             <inputParameters>
@@ -92,6 +97,11 @@
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
             <isRequired>true</isRequired>
             <storeOutputAutomatically>true</storeOutputAutomatically>
+        </fields>
+        <fields>
+            <name>personImageInstructionText</name>
+            <fieldText>&lt;p&gt;Please upload an image of you!&lt;/p&gt;</fieldText>
+            <fieldType>DisplayText</fieldType>
         </fields>
         <fields>
             <name>uploadPersonPic</name>
@@ -121,6 +131,12 @@
                     <stringValue>_Person</stringValue>
                 </value>
             </inputParameters>
+            <inputParameters>
+                <name>imageField</name>
+                <value>
+                    <stringValue>Business_Directory_Person_Image__c</stringValue>
+                </value>
+            </inputParameters>
             <inputsOnNextNavToAssocScrn>UseStoredValues</inputsOnNextNavToAssocScrn>
             <isRequired>true</isRequired>
             <storeOutputAutomatically>true</storeOutputAutomatically>
@@ -135,7 +151,7 @@
             <targetReference>Contact_Creation</targetReference>
         </connector>
     </start>
-    <status>Draft</status>
+    <status>Active</status>
     <variables>
         <name>contactVar</name>
         <dataType>SObject</dataType>

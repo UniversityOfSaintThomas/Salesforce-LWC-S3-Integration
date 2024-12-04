@@ -13,15 +13,18 @@
 
     <targetConfigs>
         <targetConfig targets="lightning__HomePage,lightning__AppPage,lightning__RecordPage,lightning__FlowScreen">
-            <property name="imageMaxWidth" type="Integer" default="800" label="Enter max image width in pixels"/>
-            <property name="imageMaxHeight" type="Integer" default="600" label="Enter max image height in pixels"/>
-            <property name="imageMode" type="String" default="resize" label="Enter image mode (fit or resize)"/>
-            <property name="fileNameSuffix" type="String"
-                      label="This will be applied to the end of file names saved in s3 making the file name unique"/>
-            <property name="recordField" type="String"
-                      label="Enter the API name of the field on the record your image URL will be recorded"/>
-            <property name="incomingRecordId" type="String" label="Incoming Record Id"
-                      description="Id of the record for which to attach this image."/>
+            <property name="imageMaxWidth" label="Image max width" type="Integer" default="800"
+                      description="Enter max image width in pixels"/>
+            <property name="imageMaxHeight" label="Image max Height" type="Integer" default="600"
+                      description="Enter max image height in pixels"/>
+            <property name="imageMode" label="Image sizing mode (crop or resize)" type="String" default="resize"
+                      description="Crop = trims excess image data and fits in dimensions, resize = fits whole image within bounds"/>
+            <property name="fileNameSuffix" label="File name suffix" type="String"
+                      description="This will be applied to the end of image file name saved in s3 making the file name unique"/>
+            <property name="imageField" label="Image Field API" type="String"
+                      description="Enter the field API name of the field on the object your image URL will be recorded"/>
+            <property name="incomingRecordId" label="Incoming record Id" type="String"
+                      description="The variable id of the record for which to attach this image"/>
         </targetConfig>
     </targetConfigs>
 

@@ -12,7 +12,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
     @api recordId;
     @api imageMaxWidth;
     @api imageMaxHeight;
-    @api recordField;
+    @api imageField;
     @api imageMode;
     @api fileNameSuffix;
     @api incomingRecordId;
@@ -91,7 +91,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
                     fileType: dataType,
                     recordId: this.recordId,
                     base64FileContent: base64Value,
-                    recordField: this.recordField,
+                    imageField: this.imageField,
                     fileNameSuffix: this.fileNameSuffix
                 })
                     .then(result => {
@@ -134,7 +134,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
                 const canvasContext = canvas.getContext("2d");
                 let ratio;
 
-                if (mode === 'fit') {
+                if (mode === 'crop') {
                     ratio = Math.max(targetWidth / imgWidth, targetHeight / imgHeight);
                 } else {
                     ratio = Math.min(targetWidth / imgWidth, targetHeight / imgHeight);

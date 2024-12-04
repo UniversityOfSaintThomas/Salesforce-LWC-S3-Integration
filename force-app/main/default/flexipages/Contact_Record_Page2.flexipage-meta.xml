@@ -208,6 +208,10 @@
                     <value>_Business</value>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
+                    <name>imageField</name>
+                    <value>Business_Directory_Image__c</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
                     <name>imageMaxHeight</name>
                     <value>600</value>
                 </componentInstanceProperties>
@@ -230,6 +234,10 @@
                     <value>_Person</value>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
+                    <name>imageField</name>
+                    <value>Business_Directory_Person_Image__c</value>
+                </componentInstanceProperties>
+                <componentInstanceProperties>
                     <name>imageMaxHeight</name>
                     <value>600</value>
                 </componentInstanceProperties>
@@ -243,9 +251,6 @@
                 </componentInstanceProperties>
                 <componentInstanceProperties>
                     <name>incomingRecordId</name>
-                </componentInstanceProperties>
-                <componentInstanceProperties>
-                    <name>recordField</name>
                 </componentInstanceProperties>
                 <componentName>awsS3DirectoryImage</componentName>
                 <identifier>c_awsS3DirectoryImage2</identifier>

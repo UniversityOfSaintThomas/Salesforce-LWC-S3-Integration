@@ -66,11 +66,11 @@ private class awsDirectoryImageController_TEST {
         String fileType = 'image/png';
         Id recordId = '001xx000003DGbYAAW';
         String base64FileContent = 'iVBORw0KGgoAAAANSUhEUgAAAAUA';
-        String recordField = 'Image_Field__c';
+        String imageField = 'Image_Field__c';
 
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, recordField, '');
+        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, imageField, '');
         Test.stopTest();
 
         // Verify
@@ -81,17 +81,17 @@ private class awsDirectoryImageController_TEST {
     static void testUpdateRecord() {
         // Setup
         Id recordId = '001xx000003DGbYAAW';
-        String recordField = 'Image_Field__c';
+        String imageField = 'Image_Field__c';
         String imageLink = 'https://example.com/image.png';
 
         // Test
         Test.startTest();
-        awsDirectoryImageController.updateRecord(recordId, recordField, imageLink);
+        awsDirectoryImageController.updateRecord(recordId, imageField, imageLink);
         Test.stopTest();
 
         // Verify
         SObject sObj = [SELECT Id, Image_Field__c FROM Account WHERE Id = :recordId];
-        System.assertEquals('<img src="https://example.com/image.png" />', sObj.get(recordField), 'The image link should be updated');
+        System.assertEquals('<img src="https://example.com/image.png" />', sObj.get(imageField), 'The image link should be updated');
     }
 
     @IsTest

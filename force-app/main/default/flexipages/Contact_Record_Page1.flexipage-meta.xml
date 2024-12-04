@@ -219,7 +219,7 @@
                     <name>incomingRecordId</name>
                 </componentInstanceProperties>
                 <componentInstanceProperties>
-                    <name>recordField</name>
+                    <name>imageField</name>
                 </componentInstanceProperties>
                 <componentName>awsS3DirectoryImage</componentName>
                 <identifier>c_awsS3DirectoryImage</identifier>
