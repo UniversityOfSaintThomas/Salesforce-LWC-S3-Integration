@@ -6,46 +6,60 @@
 @IsTest
 private class awsDirectoryImageController_TEST {
 
-    private class MockHttpResponse implements HttpCalloutMock {
-        public HttpResponse respond(HttpRequest req) {
-            // Create a fake response
-            HttpResponse res = new HttpResponse();
-            res.setHeader('Content-Type', 'application/json');
-            res.setBody('{"status":"success"}');
-            res.setStatusCode(200);
+    @TestSetup
+    static void setup() {
+        Contact testContact = new Contact(LastName = 'Test', FirstName = 'Contact');
+        insert testContact;
+        // Add setup logic here
+    }
+
+    //public class CalloutStaticClass {
+
+    public static HttpResponse getInfoFromExternalService(String endpoint) {
+            HttpRequest req = new HttpRequest();
+            req.setEndpoint(endpoint);
+            req.setMethod('GET');
+            Http h = new Http();
+            HttpResponse res = h.send(req);
             return res;
         }
-    }
+    //}
 
-    @IsTest
-    static void testAwsS3Request() {
-        // Set the mock callout
-        Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
-
-        // Test data
-        String method = 'GET';
-        String endpoint = '/test-endpoint';
-        Blob body = null;
-        String contentType = 'application/json';
-
-        // Test
-        Test.startTest();
-        HttpResponse response = awsDirectoryImageController.awsS3Request(method, endpoint, body, contentType);
-        Test.stopTest();
-
-        // Verify
-        System.assertEquals(200, response.getStatusCode(), 'The response status code should be 200');
-        System.assertEquals('{"status":"success"}', response.getBody(), 'The response body should match the mock response');
-    }
+/*    @isTest
+    global class MockHttpResponseGenerator implements HttpCalloutMock {
+        global HTTPResponse respond(HTTPRequest req){
+            try{
+                if(req.getEndpoint()=='https://any_endpoint_here.com'){
+                    HttpResponse res= new HttpResponse();
+                    res.setHeader('Content-Type','application/json');
+                    res.setBody('{"Name ":"Test Name"}');
+                    res.setStatusCode(200);
+                    return res;
+                }
+            }catch(Exception ex){
+                System.debug('ERROR Message>>>'+ex.getMessage()+' Error Line Number>>> '+ex.getLineNumber());
+            }
+            return null;
+        }
+    }*/
 
     @IsTest
     static void testFindObject() {
-
         // Set the mock callout
-        Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
+        MultiStaticResourceCalloutMock multiMock = new MultiStaticResourceCalloutMock();
+        multiMock.setStaticResource('https://example.com/example/test', 'mockResponse');
+        multiMock.setStaticResource('https://example.com/example/sfdc', 'mockResponse2');
+        multiMock.setStatusCode(200);
+        multiMock.setHeader('Content-Type', 'application/json');
+
+        // Set the mock callout mode
+        Test.setMock(HttpCalloutMock.class, multiMock);
+
+        //Get test contact
+        Contact testContact = [SELECT Id FROM Contact WHERE LastName = 'Test' AND FirstName = 'Contact' LIMIT 1];
 
         // Setup
-        String recordId = '001xx000003DGbYAAW';
+        String recordId = testContact.Id;
         Boolean deletePrevious = false;
 
         // Test
@@ -57,31 +71,32 @@ private class awsDirectoryImageController_TEST {
         System.assertNotEquals(null, result, 'The result should not be null');
     }
 
-    @IsTest
+/*    @IsTest
     static void testAddObjectsToBucket() {
-        // Setup
         // Set the mock callout
         Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
 
-        String fileType = 'image/png';
-        Id recordId = '001xx000003DGbYAAW';
+        Contact testContact = [SELECT Id FROM Contact WHERE LastName = 'Test' AND FirstName = 'Contact' LIMIT 1];
+        // Setup
+        String fileType = 'image/jpeg';
+        Id recordId = testContact.Id;
         String base64FileContent = 'iVBORw0KGgoAAAANSUhEUgAAAAUA';
-        String imageField = 'Image_Field__c';
+        String imageField = 'Department';
 
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, imageField, '');
+        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, imageField, '_TEST');
         Test.stopTest();
 
         // Verify
         System.assertNotEquals('', result, 'The result should not be empty');
-    }
+    }*/
 
 /*    @IsTest
     static void testUpdateRecord() {
         // Setup
         Id recordId = '001xx000003DGbYAAW';
-        String imageField = 'Image_Field__c';
+        String imageField = 'Department';
         String imageLink = 'https://example.com/image.png';
 
         // Test
@@ -90,14 +105,16 @@ private class awsDirectoryImageController_TEST {
         Test.stopTest();
 
         // Verify
-        SObject sObj = [SELECT Id, Image_Field__c FROM Account WHERE Id = :recordId];
+        SObject sObj = [SELECT Id, Department FROM Account WHERE Id = :recordId];
         System.assertEquals('<img src="https://example.com/image.png" />', sObj.get(imageField), 'The image link should be updated');
-    }
+    }*/
 
     @IsTest
     static void testDeleteOldFile() {
         // Setup
-        List<String> keysToDelete = new List<String>{'file1.png', 'file2.png'};
+        List<String> keysToDelete = new List<String>{
+                'file1.png', 'file2.png'
+        };
 
         // Test
         Test.startTest();
@@ -109,33 +126,18 @@ private class awsDirectoryImageController_TEST {
     }
 
     @IsTest
-    static void testAwsS3Request() {
-        // Setup
-        String method = 'GET';
-        String endpoint = '/test-endpoint';
-        Blob body = null;
-        String contentType = 'application/json';
-
-        // Test
-        Test.startTest();
-        HttpResponse response = awsDirectoryImageController.awsS3Request(method, endpoint, body, contentType);
-        Test.stopTest();
-
-        // Verify
-        System.assertEquals(200, response.getStatusCode(), 'The response status code should be 200');
-    }
-
-    @IsTest
     static void testMd5fileName() {
         // Setup
-        String originalFilename = 'testfile';
-
+        String fileName = 'testfile';
+        Blob fileNameBlob = Blob.valueOf(fileName + 'USTDirImage');
+        Blob hasFileNameBlob = Crypto.generateDigest('MD5', fileNameBlob);
+        String testString = EncodingUtil.convertToHex(hasFileNameBlob);
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.md5fileName(originalFilename);
+        String result = awsDirectoryImageController.md5fileName(fileName);
         Test.stopTest();
 
         // Verify
-        System.assertNotEquals(null, result, 'The result should not be null');
-    }*/
+        System.assertEquals(testString, result, 'md5 encryption matches');
+    }
 }

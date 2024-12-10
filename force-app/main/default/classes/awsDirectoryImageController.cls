@@ -16,9 +16,11 @@ public with sharing class awsDirectoryImageController {
         String imageLink;
         String endPoint = '?prefix=' + EncodingUtil.urlEncode(fileName, 'UTF-8') + '.';
         HttpResponse res = awsS3Request('GET', endPoint, null, '');
+        System.debug('res: ' + res.toString());
         String namespace = 'http://s3.amazonaws.com/doc/2006-03-01/';
         Dom.Document doc = res.getBodyDocument();
         Dom.XmlNode root = doc.getRootElement();
+        System.debug('doc: ' + doc);
 
         List<String> keysToDelete = new List<String>();
         Datetime lastLastModified = null;
@@ -52,7 +54,6 @@ public with sharing class awsDirectoryImageController {
         String fileName = '/' + md5fileName(recordId) + fileNameSuffix + '.' + fileSuffix;
         HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
         String imageLink = bucketLink + fileName.removeStart('/');
-
         if (res.getStatusCode() == 200) {
             updateRecord(recordId, imageField, imageLink);
             return imageLink + '?t=' + Datetime.now().getTime();
