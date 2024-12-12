@@ -30,11 +30,17 @@ Much of this set-up was derived from the [from this tutorial](https://oktana.com
 9. Make sure that "img-src (images)" is checked.
 10. Click "Save"
 
-### Add premissionset to LWC user   
+### Add permissionset to LWC user   
 1. Go to setup > Users
 2. Select the user you want to have access to the LWC
 3. Click on "Permission Set Assignments"
 4. Click on "Edit Assignments"
 5. Add the "AWS S3 Directory Image Principal" to the user
 6. Click "Save"
+
+## Additional Configuration for community users
+Users will need to have permission set access to:
+- awsDirectoryController Apex class
+- AWS S3 Directory Image Principal
+- Read access to the User External Credentials object
 
