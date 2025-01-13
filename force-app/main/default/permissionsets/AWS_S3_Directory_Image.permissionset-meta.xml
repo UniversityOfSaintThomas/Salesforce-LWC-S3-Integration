@@ -4,11 +4,6 @@
         <enabled>true</enabled>
         <externalCredentialPrincipal>AWS_S3_Directory_Image_Credential-AWS S3 Directory Image Principal</externalCredentialPrincipal>
     </externalCredentialPrincipalAccesses>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Contact.Directory_Image__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
     <hasActivationRequired>false</hasActivationRequired>
     <label>AWS S3 Directory Image</label>
     <objectPermissions>
