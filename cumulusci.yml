@@ -30,13 +30,12 @@ tasks:
     options:
       namespace_inject: $project_config.project__package__namespace
       apex: >
-        List<PermissionSet> eventPermissionSets;
-        eventPermissionSets = [SELECT Name, Id FROM PermissionSet WHERE Name = 'AWS_S3_Directory_Image'];
+        PermissionSet eventPermissionSets = [SELECT Name, Id FROM PermissionSet WHERE Name = 'AWS_S3_Directory_Image' LIMIT 1];
         
         List<PermissionSetAssignment> permissionSetList = new List<PermissionSetAssignment>();
-        if (!eventPermissionSets.isEmpty()) {
+        if (eventPermissionSets != null) {
             for (User u: [ SELECT ID FROM User WHERE Profile.Name = 'System Administrator' ]) {
-                             permissionSetList.add(new PermissionSetAssignment(PermissionSetId = eventPermissionSets[0].Id, AssigneeId = u.Id));
+                             permissionSetList.add(new PermissionSetAssignment(PermissionSetId = eventPermissionSets.Id, AssigneeId = u.Id));
             }
         }
         if (!permissionSetList.isEmpty()) {
