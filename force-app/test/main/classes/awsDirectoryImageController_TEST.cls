@@ -64,7 +64,7 @@ private class awsDirectoryImageController_TEST {
 
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.findObject(recordId, deletePrevious, '');
+        String result = getBucketLink.findObject(recordId, deletePrevious, '');
         Test.stopTest();
 
         // Verify
@@ -118,7 +118,7 @@ private class awsDirectoryImageController_TEST {
 
         // Test
         Test.startTest();
-        awsDirectoryImageController.deleteOldFile(keysToDelete);
+        getBucketLink.deleteOldFile(keysToDelete);
         Test.stopTest();
 
         // Verify
@@ -134,7 +134,7 @@ private class awsDirectoryImageController_TEST {
         String testString = EncodingUtil.convertToHex(hasFileNameBlob);
         // Test
         Test.startTest();
-        String result = awsDirectoryImageController.md5fileName(fileName);
+        String result = getBucketLink.md5fileName(fileName);
         Test.stopTest();
 
         // Verify

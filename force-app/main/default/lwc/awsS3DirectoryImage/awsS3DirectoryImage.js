@@ -3,8 +3,8 @@
  */
 
 import {api, LightningElement, track} from 'lwc';
-import addObjectsToBucket from '@salesforce/apex/awsDirectoryImageController.addObjectsToBucket';
-import findObjectsInBucket from '@salesforce/apex/awsDirectoryImageController.findObject';
+import addObjectsToBucket from '@salesforce/apex/getBucketLink.addObjectsToBucket';
+import findObjectsInBucket from '@salesforce/apex/getBucketLink.findObject';
 import {RefreshEvent} from 'lightning/refresh';
 
 export default class AwsS3DirectoryImage extends LightningElement {

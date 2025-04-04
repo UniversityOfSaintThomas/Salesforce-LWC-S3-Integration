@@ -5,10 +5,17 @@
 
 public with sharing class awsDirectoryImageController {
 
-    private final static String bucketLink = 'https://stthomas-dev-salesforce-directory-images.s3.us-east-1.amazonaws.com/';
+    public static String getBucketLink() {
+        ConnectApi.NamedCredential nc = ConnectApi.NamedCredentials.getNamedCredential('AWS_S3_Directory_Image');
+        if (nc != null) {
+            return nc.calloutUrl + '/';
+        }
+        return '/';
+    }
 
     @AuraEnabled
     public static String findObject(String recordId, Boolean deletePrevious, String fileNameSuffix) {
+        String bucketLink = getBucketLink();
         String fileName = md5fileName(recordId);
         if (String.isNotBlank(fileNameSuffix)) {
             fileName += fileNameSuffix;
@@ -44,7 +51,7 @@ public with sharing class awsDirectoryImageController {
 
     @AuraEnabled
     public static String addObjectsToBucket(String fileType, Id recordId, String base64FileContent, String imageField, String fileNameSuffix) {
-
+        String bucketLink = getBucketLink();
         String fileSuffix = fileType.replace('image/', '');
         if (fileSuffix == 'jpeg') {
             fileSuffix = 'jpg';
