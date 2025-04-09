@@ -23,11 +23,12 @@ public with sharing class awsDirectoryImageController {
         String imageLink;
         String endPoint = '?prefix=' + EncodingUtil.urlEncode(fileName, 'UTF-8') + '.';
         HttpResponse res = awsS3Request('GET', endPoint, null, '');
+        System.debug('header: ' + res.getHeader('Content-Type'));
         System.debug('res: ' + res.toString());
         String namespace = 'http://s3.amazonaws.com/doc/2006-03-01/';
         Dom.Document doc = res.getBodyDocument();
         Dom.XmlNode root = doc.getRootElement();
-        System.debug('doc: ' + doc);
+        System.debug('doc: ' + doc.toString());
 
         List<String> keysToDelete = new List<String>();
         Datetime lastLastModified = null;

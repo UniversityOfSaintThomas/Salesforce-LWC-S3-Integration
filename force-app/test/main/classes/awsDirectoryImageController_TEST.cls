@@ -2,142 +2,58 @@
  * Created by Thaddaeus Dahlberg, Software Engineer, University of St. Thomas on 12/3/2024.
  */
 
-
-@IsTest
+@IsTest(SeeAllData=true)
 private class awsDirectoryImageController_TEST {
-
-    @TestSetup
-    static void setup() {
-        Contact testContact = new Contact(LastName = 'Test', FirstName = 'Contact');
-        insert testContact;
-        // Add setup logic here
-    }
-
-    //public class CalloutStaticClass {
-
-    public static HttpResponse getInfoFromExternalService(String endpoint) {
-            HttpRequest req = new HttpRequest();
-            req.setEndpoint(endpoint);
-            req.setMethod('GET');
-            Http h = new Http();
-            HttpResponse res = h.send(req);
-            return res;
-        }
-    //}
-
-/*    @isTest
-    global class MockHttpResponseGenerator implements HttpCalloutMock {
-        global HTTPResponse respond(HTTPRequest req){
-            try{
-                if(req.getEndpoint()=='https://any_endpoint_here.com'){
-                    HttpResponse res= new HttpResponse();
-                    res.setHeader('Content-Type','application/json');
-                    res.setBody('{"Name ":"Test Name"}');
-                    res.setStatusCode(200);
-                    return res;
-                }
-            }catch(Exception ex){
-                System.debug('ERROR Message>>>'+ex.getMessage()+' Error Line Number>>> '+ex.getLineNumber());
-            }
-            return null;
-        }
-    }*/
 
     @IsTest
     static void testFindObject() {
-        // Set the mock callout
-        MultiStaticResourceCalloutMock multiMock = new MultiStaticResourceCalloutMock();
-        multiMock.setStaticResource('https://example.com/example/test', 'mockResponse');
-        multiMock.setStaticResource('https://example.com/example/sfdc', 'mockResponse2');
-        multiMock.setStatusCode(200);
-        multiMock.setHeader('Content-Type', 'application/json');
-
-        // Set the mock callout mode
-        Test.setMock(HttpCalloutMock.class, multiMock);
-
-        //Get test contact
-        Contact testContact = [SELECT Id FROM Contact WHERE LastName = 'Test' AND FirstName = 'Contact' LIMIT 1];
-
-        // Setup
-        String recordId = testContact.Id;
-        Boolean deletePrevious = false;
-
-        // Test
+        Test.setMock(HttpCalloutMock.class, new awsDirectoryImageControllerMock());
         Test.startTest();
-        String result = getBucketLink.findObject(recordId, deletePrevious, '');
+        String imageLink = awsDirectoryImageController.findObject(String.valueOf([SELECT Id FROM Account LIMIT 1].Id), true, '');
         Test.stopTest();
-
-        // Verify
-        System.assertNotEquals(null, result, 'The result should not be null');
+        Assert.areEqual(null, imageLink);
     }
 
-/*    @IsTest
+    @IsTest
     static void testAddObjectsToBucket() {
-        // Set the mock callout
-        Test.setMock(HttpCalloutMock.class, new MockHttpResponse());
-
-        Contact testContact = [SELECT Id FROM Contact WHERE LastName = 'Test' AND FirstName = 'Contact' LIMIT 1];
-        // Setup
-        String fileType = 'image/jpeg';
-        Id recordId = testContact.Id;
-        String base64FileContent = 'iVBORw0KGgoAAAANSUhEUgAAAAUA';
-        String imageField = 'Department';
-
-        // Test
+        ConnectApi.NamedCredential nc = ConnectApi.NamedCredentials.getNamedCredential('AWS_S3_Directory_Image');
+        Account newAccount = new Account(Name = 'Test Account');
+        insert newAccount;
+        String md5Id = awsDirectoryImageController.md5fileName(newAccount.Id);
+        Test.setMock(HttpCalloutMock.class, new awsDirectoryImageControllerMock());
         Test.startTest();
-        String result = awsDirectoryImageController.addObjectsToBucket(fileType, recordId, base64FileContent, imageField, '_TEST');
+        String imageLink = awsDirectoryImageController.addObjectsToBucket('image/jpeg', newAccount.Id, 'base64FileContent', 'Description', '');
         Test.stopTest();
-
-        // Verify
-        System.assertNotEquals('', result, 'The result should not be empty');
-    }*/
-
-/*    @IsTest
-    static void testUpdateRecord() {
-        // Setup
-        Id recordId = '001xx000003DGbYAAW';
-        String imageField = 'Department';
-        String imageLink = 'https://example.com/image.png';
-
-        // Test
-        Test.startTest();
-        awsDirectoryImageController.updateRecord(recordId, imageField, imageLink);
-        Test.stopTest();
-
-        // Verify
-        SObject sObj = [SELECT Id, Department FROM Account WHERE Id = :recordId];
-        System.assertEquals('<img src="https://example.com/image.png" />', sObj.get(imageField), 'The image link should be updated');
-    }*/
-
-    @IsTest
-    static void testDeleteOldFile() {
-        // Setup
-        List<String> keysToDelete = new List<String>{
-                'file1.png', 'file2.png'
-        };
-
-        // Test
-        Test.startTest();
-        getBucketLink.deleteOldFile(keysToDelete);
-        Test.stopTest();
-
-        // Verify
-        // Add appropriate verification logic if possible
+        //get the t value out of the image link
+        List<String> imageLinkParts = imageLink.split('\\?');
+        Assert.areEqual(nc.calloutUrl + '/' + md5Id + '.jpg?' + imageLinkParts[1], imageLink);
     }
 
     @IsTest
-    static void testMd5fileName() {
-        // Setup
-        String fileName = 'testfile';
-        Blob fileNameBlob = Blob.valueOf(fileName + 'USTDirImage');
-        Blob hasFileNameBlob = Crypto.generateDigest('MD5', fileNameBlob);
-        String testString = EncodingUtil.convertToHex(hasFileNameBlob);
-        // Test
+    static void testUpdateRecord() {
+        Account newAccount = new Account(Name = 'Test Account');
+        insert newAccount;
         Test.startTest();
-        String result = getBucketLink.md5fileName(fileName);
+        awsDirectoryImageController.updateRecord(newAccount.Id, 'Description', 'https://td-aws-dev-s3b.s3.us-west-2.amazonaws.com/fileName');
         Test.stopTest();
+        Assert.areEqual(null, newAccount.Description);
+    }
 
-        // Verify
-        System.assertEquals(testString, result, 'md5 encryption matches');
+    @IsTest
+    static void testGetBucketLink() {
+        ConnectApi.NamedCredential nc = ConnectApi.NamedCredentials.getNamedCredential('AWS_S3_Directory_Image');
+        Test.startTest();
+        String bucketLink = awsDirectoryImageController.getBucketLink();
+        Test.stopTest();
+        Assert.areEqual(nc.calloutUrl + '/', bucketLink);
+    }
+
+    @IsTest
+    static void testAwsS3Request() {
+        Test.setMock(HttpCalloutMock.class, new awsDirectoryImageControllerMock());
+        Test.startTest();
+        HttpResponse response = awsDirectoryImageController.awsS3Request('GET', 'endpoint', Blob.valueOf('body'), 'contentType');
+        Test.stopTest();
+        Assert.areEqual(200, response.getStatusCode());
     }
 }
