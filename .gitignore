@@ -62,3 +62,6 @@ target/
 /.illuminatedCloud/
 **/tsconfig*.json
 **/*.tsbuildinfo
+
+**/graphql.config.yml
+ai-logs/
