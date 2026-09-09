@@ -31,15 +31,12 @@ public with sharing class awsDirectoryImageController {
         System.debug('doc: ' + doc.toString());
 
         List<String> keysToDelete = new List<String>();
-        Datetime lastLastModified = null;
 
         for (Dom.XmlNode node : root.getChildElements()) {
             if (node.getName() == 'Contents' && node.getNamespace() == namespace) {
                 String key = node.getChildElement('Key', namespace).getText();
-                Datetime lastModified = Datetime.valueOf(node.getChildElement('LastModified', namespace).getText().replace('T', ' ').replace('Z', ''));
                 keysToDelete.add(key);
                 imageLink = bucketLink + key;
-                lastLastModified = lastModified;
             }
         }
 
@@ -75,28 +72,35 @@ public with sharing class awsDirectoryImageController {
     @TestVisible
     private static void updateRecord(Id recordId, String imageField, String imageLink) {
         Id myRecordId;
-        String sObjName;
+        Schema.SObjectType sObjectType;
         try {
             myRecordId = recordId;
-            sObjName = myRecordId.getSObjectType().getDescribe().getName();
+            sObjectType = myRecordId.getSObjectType();
         } catch (Exception e) {
             System.debug('Error: ' + e.getMessage());
         }
-        if (String.isNotBlank(imageField) && String.isNotBlank(sObjName)) {
-            SObject sObj = Database.query('SELECT Id, ' + imageField + ' FROM ' + sObjName + ' WHERE Id = :myRecordId');
+        if (String.isNotBlank(imageField) && sObjectType != null) {
+            Schema.DescribeSObjectResult describeSObjectResult = sObjectType.getDescribe();
+            Schema.DescribeFieldResult fieldResult = describeSObjectResult.fields.getMap().containsKey(imageField)
+                ? describeSObjectResult.fields.getMap().get(imageField).getDescribe()
+                : null;
+            if (fieldResult == null) {
+                System.debug('Error: field ' + imageField + ' does not exist on ' + describeSObjectResult.getName());
+                return;
+            }
+
+            SObject sObj = Database.query('SELECT Id, ' + imageField + ' FROM ' + describeSObjectResult.getName() + ' WHERE Id = :myRecordId');
             String imageLinkField = imageLink;
-            if (String.isNotBlank(imageLinkField)) {
-                Schema.SObjectType sObjectType = Schema.getGlobalDescribe().get(sObjName);
-                Schema.DescribeSObjectResult describeSObjectResult = sObjectType.getDescribe();
-                Schema.DescribeFieldResult fieldResult = describeSObjectResult.fields.getMap().get(imageField).getDescribe();
-                if (fieldResult.isHtmlFormatted()) {
-                    imageLinkField = '<img src="' + imageLinkField + '" />';
-                }
+            if (String.isNotBlank(imageLinkField) && fieldResult.isHtmlFormatted()) {
+                imageLinkField = '<img src="' + imageLinkField + '" />';
             }
 
             sObj.put(imageField, imageLinkField);
             update sObj;
         }
+    }
+
+    public class AwsS3CalloutException extends Exception {
     }
 
     @TestVisible
@@ -107,7 +111,9 @@ public with sharing class awsDirectoryImageController {
             request.setMethod('DELETE');
             request.setEndpoint('callout:AWS_S3_Directory_Image/' + fileName);
             HttpResponse res = http.send(request);
-            Assert.areEqual(204, res.getStatusCode());
+            if (res.getStatusCode() != 204) {
+                throw new AwsS3CalloutException('Failed to delete S3 object ' + fileName + ': received status ' + res.getStatusCode());
+            }
         }
     }
 
@@ -120,7 +126,9 @@ public with sharing class awsDirectoryImageController {
         if (String.isNotBlank(contentType)) request.setHeader('Content-Type', contentType);
 
         HttpResponse resp = new Http().send(request);
-        Assert.areEqual(200, resp.getStatusCode());
+        if (resp.getStatusCode() != 200) {
+            throw new AwsS3CalloutException('AWS S3 request failed: received status ' + resp.getStatusCode());
+        }
         return resp;
     }
 

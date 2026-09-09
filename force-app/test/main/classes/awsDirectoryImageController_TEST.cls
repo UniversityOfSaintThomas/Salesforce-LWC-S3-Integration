@@ -7,9 +7,11 @@ private class awsDirectoryImageController_TEST {
 
     @IsTest
     static void testFindObject() {
+        Account newAccount = new Account(Name = 'Test Account');
+        insert newAccount;
         Test.setMock(HttpCalloutMock.class, new awsDirectoryImageControllerMock());
         Test.startTest();
-        String imageLink = awsDirectoryImageController.findObject(String.valueOf([SELECT Id FROM Account LIMIT 1].Id), true, '', 'Description');
+        String imageLink = awsDirectoryImageController.findObject(newAccount.Id, true, '', 'Description');
         Test.stopTest();
         Assert.areEqual(null, imageLink);
     }
@@ -44,12 +46,24 @@ private class awsDirectoryImageController_TEST {
 
     @IsTest
     static void testUpdateRecord() {
-        Account newAccount = new Account(Name = 'Test Account');
+        Account newAccount = new Account(Name = 'Test Account', Description = 'https://example.com/old-image.jpg');
         insert newAccount;
         Test.startTest();
-        awsDirectoryImageController.updateRecord(newAccount.Id, 'Description', 'https://td-aws-dev-s3b.s3.us-west-2.amazonaws.com/fileName');
+        awsDirectoryImageController.updateRecord(newAccount.Id, 'Description', null);
         Test.stopTest();
-        Assert.areEqual(null, newAccount.Description);
+        Account updatedAccount = [SELECT Description FROM Account WHERE Id = :newAccount.Id];
+        Assert.areEqual(null, updatedAccount.Description);
+    }
+
+    @IsTest
+    static void testUpdateRecordInvalidFieldIsNoOp() {
+        Account newAccount = new Account(Name = 'Test Account', Description = 'https://example.com/old-image.jpg');
+        insert newAccount;
+        Test.startTest();
+        awsDirectoryImageController.updateRecord(newAccount.Id, 'NotARealField__c', 'https://example.com/new-image.jpg');
+        Test.stopTest();
+        Account updatedAccount = [SELECT Description FROM Account WHERE Id = :newAccount.Id];
+        Assert.areEqual('https://example.com/old-image.jpg', updatedAccount.Description);
     }
 
     @IsTest
@@ -68,5 +82,31 @@ private class awsDirectoryImageController_TEST {
         HttpResponse response = awsDirectoryImageController.awsS3Request('GET', 'endpoint', Blob.valueOf('body'), 'contentType');
         Test.stopTest();
         Assert.areEqual(200, response.getStatusCode());
+    }
+
+    @IsTest
+    static void testAwsS3RequestThrowsOnFailure() {
+        Test.setMock(HttpCalloutMock.class, new awsDirImgFailedRequestMock());
+        Test.startTest();
+        try {
+            awsDirectoryImageController.awsS3Request('GET', 'endpoint', Blob.valueOf('body'), 'contentType');
+            Assert.fail('Expected AwsS3CalloutException to be thrown');
+        } catch (awsDirectoryImageController.AwsS3CalloutException e) {
+            Assert.isTrue(e.getMessage().contains('500'));
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testDeleteOldFileThrowsOnFailure() {
+        Test.setMock(HttpCalloutMock.class, new awsDirImgFailedRequestMock());
+        Test.startTest();
+        try {
+            awsDirectoryImageController.deleteOldFile(new List<String>{'some-key.jpg'});
+            Assert.fail('Expected AwsS3CalloutException to be thrown');
+        } catch (awsDirectoryImageController.AwsS3CalloutException e) {
+            Assert.isTrue(e.getMessage().contains('500'));
+        }
+        Test.stopTest();
     }
 }

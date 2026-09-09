@@ -119,7 +119,6 @@ export default class AwsS3DirectoryImage extends LightningElement {
         let targetWidth = this.imageMaxWidth || 800;
         let targetHeight = this.imageMaxHeight || 600;
 
-        const degrees = 0;
         const img = new Image();
         img.src = imgDataUrl;
 
@@ -158,7 +157,6 @@ export default class AwsS3DirectoryImage extends LightningElement {
 
                     canvasContext.clearRect(0, 0, canvas.width, canvas.height);
                     canvasContext.translate(canvas.width / 2, canvas.height / 2);
-                    canvasContext.rotate(degrees * Math.PI / 180);
                     canvasContext.drawImage(canvasCopy, -targetWidth / 2 - offsetX, -targetHeight / 2 - offsetY, newWidth, newHeight);
                     resolve(canvas.toDataURL());
                 }
