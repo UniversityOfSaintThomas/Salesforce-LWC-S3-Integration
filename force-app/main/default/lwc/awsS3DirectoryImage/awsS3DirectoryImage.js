@@ -33,7 +33,7 @@ export default class AwsS3DirectoryImage extends LightningElement {
         if (this.incomingRecordId) {
             this.recordId = this.incomingRecordId;
         }
-        findObjectsInBucket({recordId: this.recordId, deletePrevious: false, fileNameSuffix: this.fileNameSuffix})
+        findObjectsInBucket({recordId: this.recordId, deletePrevious: false, fileNameSuffix: this.fileNameSuffix, imageField: this.imageField})
             .then(result => {
                 if (result) {
                     this.currentImageULR = result;
@@ -51,11 +51,12 @@ export default class AwsS3DirectoryImage extends LightningElement {
 
     handleDeleteImage() {
         this.showSpinner = true;
-        findObjectsInBucket({recordId: this.recordId, deletePrevious: true, fileNameSuffix: this.fileNameSuffix})
+        findObjectsInBucket({recordId: this.recordId, deletePrevious: true, fileNameSuffix: this.fileNameSuffix, imageField: this.imageField})
             .then(result => {
                 this.currentImageULR = null;
                 this.imageFound = false;
                 this.showSpinner = false;
+                this.dispatchEvent(new RefreshEvent());
             })
             .catch(error => {
                 this.error = error;

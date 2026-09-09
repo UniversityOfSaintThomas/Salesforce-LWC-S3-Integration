@@ -14,7 +14,7 @@ public with sharing class awsDirectoryImageController {
     }
 
     @AuraEnabled
-    public static String findObject(String recordId, Boolean deletePrevious, String fileNameSuffix) {
+    public static String findObject(String recordId, Boolean deletePrevious, String fileNameSuffix, String imageField) {
         String bucketLink = getBucketLink();
         String fileName = md5fileName(recordId);
         if (String.isNotBlank(fileNameSuffix)) {
@@ -45,6 +45,9 @@ public with sharing class awsDirectoryImageController {
 
         if (deletePrevious) {
             deleteOldFile(keysToDelete);
+            if (!keysToDelete.isEmpty()) {
+                updateRecord(recordId, imageField, null);
+            }
         }
 
         return String.isNotBlank(imageLink) && !deletePrevious ? imageLink : null;
@@ -58,7 +61,7 @@ public with sharing class awsDirectoryImageController {
             fileSuffix = 'jpg';
         }
         Blob fileBody = EncodingUtil.base64Decode(base64FileContent);
-        findObject(recordId, true, fileNameSuffix);
+        findObject(recordId, true, fileNameSuffix, imageField);
         String fileName = '/' + md5fileName(recordId) + fileNameSuffix + '.' + fileSuffix;
         HttpResponse res = awsS3Request('PUT', fileName, fileBody, fileType);
         String imageLink = bucketLink + fileName.removeStart('/');
@@ -81,12 +84,14 @@ public with sharing class awsDirectoryImageController {
         }
         if (String.isNotBlank(imageField) && String.isNotBlank(sObjName)) {
             SObject sObj = Database.query('SELECT Id, ' + imageField + ' FROM ' + sObjName + ' WHERE Id = :myRecordId');
-            Schema.SObjectType sObjectType = Schema.getGlobalDescribe().get(sObjName);
-            Schema.DescribeSObjectResult describeSObjectResult = sObjectType.getDescribe();
-            Schema.DescribeFieldResult fieldResult = describeSObjectResult.fields.getMap().get(imageField).getDescribe();
             String imageLinkField = imageLink;
-            if (fieldResult.isHtmlFormatted()) {
-                imageLinkField = '<img src="' + imageLinkField + '" />';
+            if (String.isNotBlank(imageLinkField)) {
+                Schema.SObjectType sObjectType = Schema.getGlobalDescribe().get(sObjName);
+                Schema.DescribeSObjectResult describeSObjectResult = sObjectType.getDescribe();
+                Schema.DescribeFieldResult fieldResult = describeSObjectResult.fields.getMap().get(imageField).getDescribe();
+                if (fieldResult.isHtmlFormatted()) {
+                    imageLinkField = '<img src="' + imageLinkField + '" />';
+                }
             }
 
             sObj.put(imageField, imageLinkField);

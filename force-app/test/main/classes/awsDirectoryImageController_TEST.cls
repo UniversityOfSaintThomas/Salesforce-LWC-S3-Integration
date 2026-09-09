@@ -9,9 +9,22 @@ private class awsDirectoryImageController_TEST {
     static void testFindObject() {
         Test.setMock(HttpCalloutMock.class, new awsDirectoryImageControllerMock());
         Test.startTest();
-        String imageLink = awsDirectoryImageController.findObject(String.valueOf([SELECT Id FROM Account LIMIT 1].Id), true, '');
+        String imageLink = awsDirectoryImageController.findObject(String.valueOf([SELECT Id FROM Account LIMIT 1].Id), true, '', 'Description');
         Test.stopTest();
         Assert.areEqual(null, imageLink);
+    }
+
+    @IsTest
+    static void testFindObjectDeletePreviousClearsField() {
+        Account newAccount = new Account(Name = 'Test Account', Description = 'https://example.com/old-image.jpg');
+        insert newAccount;
+        Test.setMock(HttpCalloutMock.class, new awsDirImgFoundObjectMock());
+        Test.startTest();
+        String imageLink = awsDirectoryImageController.findObject(newAccount.Id, true, '', 'Description');
+        Test.stopTest();
+        Assert.areEqual(null, imageLink);
+        Account updatedAccount = [SELECT Description FROM Account WHERE Id = :newAccount.Id];
+        Assert.areEqual(null, updatedAccount.Description);
     }
 
     @IsTest
