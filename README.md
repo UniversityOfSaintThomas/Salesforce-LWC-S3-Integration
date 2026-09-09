@@ -75,6 +75,19 @@ This applies to both internal Lightning Experience users and Experience Cloud (c
 
 ---
 
+## Field-Level Security on the Target Image Field
+
+The `imageField` passed into the component (e.g., `Directory_Image__c`) is **not** covered by the `AWS_S3_Directory_Image` permission set — the component is generic and can point at any field on any object, so field-level security for that field must be granted separately by whoever configures the component for a given use case.
+
+As of API version 67.0, Apex database operations run in **user mode by default** (previously system mode). This means `awsDirectoryImageController` now automatically enforces the running user's field-level security and object permissions on the target image field:
+
+- The running user needs **Read** access on `imageField` — the controller queries it before updating.
+- The running user needs **Edit** access on `imageField` — the controller writes the S3 URL (or clears it on delete) via DML.
+
+If either permission is missing, the update will fail with an insufficient-access error rather than silently succeeding or being skipped. Make sure whoever is assigned to interact with this LWC has both Read and Edit field-level security on the field configured for `imageField`, in addition to the `AWS_S3_Directory_Image` permission set.
+
+---
+
 ## Troubleshooting
 
 | Error | Cause | Fix |

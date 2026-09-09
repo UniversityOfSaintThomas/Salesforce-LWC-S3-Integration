@@ -3,7 +3,7 @@ project:
   name: Salesforce-LWC-S3-Integration
   package:
     name: Salesforce-LWC-S3-Integration
-    api_version: '62.0'
+    api_version: '67.0'
   git:
     default_branch: 'main'
   source_format: sfdx
