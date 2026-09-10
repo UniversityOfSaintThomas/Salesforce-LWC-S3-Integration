@@ -10,7 +10,7 @@
                 <lightning-spinner alternative-text="Uploading..." size="medium"></lightning-spinner>
             </template>
             <template if:true={error}>
-                <c-error-panel errors={error}></c-error-panel>
+                <c-error-panel errors={error} friendly-message="We couldn't process your image"></c-error-panel>
             </template>
 
             <template if:true={imageFound}>

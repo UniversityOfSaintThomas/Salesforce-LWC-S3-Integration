@@ -3,7 +3,7 @@
     <canAccessCamera>false</canAccessCamera>
     <canAccessMicrophone>false</canAccessMicrophone>
     <context>All</context>
-    <endpointUrl>https://stthomas-dev-salesforce-directory-images.s3.us-east-1.amazonaws.com</endpointUrl>
+    <endpointUrl>https://REPLACE_WITH_YOUR_BUCKET.s3.REPLACE_WITH_REGION.amazonaws.com</endpointUrl>
     <isActive>true</isActive>
     <isApplicableToConnectSrc>false</isApplicableToConnectSrc>
     <isApplicableToFontSrc>false</isApplicableToFontSrc>

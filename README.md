@@ -4,6 +4,17 @@ A Lightning Web Component that integrates with AWS S3 to display and upload dire
 
 ---
 
+## Project Structure
+
+This repo is split into two parts:
+
+- **`force-app/`** — the reusable, packageable feature: the `awsDirectoryImageController` Apex class, the `awsS3DirectoryImage` LWC (plus its `errorPanel`/`ldsUtils` dependencies), the Named Credential, External Credential, CSP Trusted Site, and permission set. This is the part intended to be packaged and reused across other Salesforce projects/orgs.
+- **`unpackaged/config/dev-demo/`** — Contact-specific example configuration (custom fields, page layouts, FlexiPages, and a record-creation Flow) that exists only to showcase the feature on a Contact record in this repo's scratch org. Deployed separately via the `deploy_dev_config` CumulusCI task, not part of the packaged feature.
+
+If you're integrating this feature into another repo, you only need what's under `force-app/`.
+
+---
+
 ## How It Works
 
 The LWC calls an Apex controller (`awsDirectoryImageController`) which makes authenticated callouts to AWS S3 via a Named Credential. The component can:
@@ -17,7 +28,7 @@ The controller uses `ConnectApi.NamedCredentials.getNamedCredential()` to read t
 ## Initial Setup (Scratch Org)
 
 1. [Set up CumulusCI](https://cumulusci.readthedocs.io/en/latest/tutorial.html)
-2. Run `cci flow run dev_org --org dev` to deploy this project
+2. Run `cci flow run dev_org --org dev` to deploy this project (this deploys `force-app/`, the demo config under `unpackaged/config/dev-demo/`, and assigns the permission set)
 3. Run `cci org browser dev` to open the org in your browser
 4. Complete the manual post-deploy steps below
 
@@ -25,7 +36,18 @@ The controller uses `ConnectApi.NamedCredentials.getNamedCredential()` to read t
 
 ## Post-Deploy Configuration
 
-### 1. Enter the AWS Access Key and Secret
+### 1. Set the S3 Bucket URL
+
+The Named Credential and CSP Trusted Site both ship with a placeholder URL (`https://REPLACE_WITH_YOUR_BUCKET.s3.REPLACE_WITH_REGION.amazonaws.com`) since the actual bucket URL is different for every org/user of this feature. After deploying, update both to point at your real bucket:
+
+1. **Setup → Named Credentials** → click **AWS S3 Directory Image** → edit the **Url** parameter → enter your bucket's URL (`https://<your-bucket-name>.s3.<region>.amazonaws.com`) → **Save**
+2. **Setup → Trusted URLs** → click **AWS_S3_Directory_Image** → edit **URL** → enter the same bucket URL → confirm **img-src (images)** is checked → **Save**
+
+Both must point at the **same** bucket and region, or image uploads/lookups will fail.
+
+---
+
+### 2. Enter the AWS Access Key and Secret
 
 The AWS credentials are stored in the External Credential's Named Principal and are **not deployed** (they contain secrets). You must enter them manually after each deploy.
 
@@ -36,20 +58,6 @@ The AWS credentials are stored in the External Credential's Named Principal and 
 5. Click **Save**
 
 > **Principal Type must be "Named Principal"** — this is critical. A Named Principal stores one shared set of credentials used by all users who have the permission set. If the principal type is "Per User", each user must individually authenticate, which is impractical for community users. The metadata in this repo deploys a Named Principal (`<parameterType>NamedPrincipal</parameterType>`).
-
----
-
-### 2. Add the S3 Bucket URL to Trusted URLs
-
-The browser must be allowed to load images from S3. The CSP Trusted Site is deployed automatically, but verify it exists:
-
-1. Go to **Setup → Trusted URLs**
-2. Confirm **AWS_S3_Directory_Image** is listed and active, with **img-src (images)** checked
-3. If missing, create it:
-   - **API Name**: `AWS_S3_Directory_Image`
-   - **URL**: `https://<your-bucket-name>.s3.<region>.amazonaws.com`
-   - **Active**: checked
-   - **img-src (images)**: checked
 
 ---
 
@@ -96,3 +104,4 @@ If either permission is missing, the update will fail with an insufficient-acces
 | `Insufficient Privileges: This feature is not currently enabled for this user.` | User is missing the `ApiEnabled` permission (required for `ConnectApi.NamedCredentials`) | Ensure the permission set is assigned — it includes `ApiEnabled` |
 | Images visible in Lightning but not in community | Community user missing the permission set assignment | Assign `AWS_S3_Directory_Image` to the community user |
 | `Named Credential Id=null` in debug logs | Per User principal with no user-linked credentials | Switch the External Credential principal type to Named Principal (should already be correct per this repo's metadata) |
+| `NoSuchBucket` / `AWS S3 request failed: received status 404` | The Named Credential's `Url` parameter is still the placeholder value, or points at a bucket that doesn't exist | Complete [Post-Deploy Configuration step 1](#1-set-the-s3-bucket-url) — update both the Named Credential and CSP Trusted Site with your real bucket URL |
