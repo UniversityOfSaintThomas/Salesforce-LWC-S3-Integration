@@ -23,12 +23,14 @@ The LWC calls an Apex controller (`awsDirectoryImageController`) which makes aut
 
 The controller uses `ConnectApi.NamedCredentials.getNamedCredential()` to read the bucket URL from the Named Credential. This API requires the **API Enabled** user permission, which is included in the permission set.
 
+All S3 callouts (list, delete, upload) happen before the single DML update that writes the new image link to the record. This ordering is required — Salesforce does not allow a callout after uncommitted DML in the same transaction, and doing it in the other order throws `"You have uncommitted work pending. Please commit or rollback before calling out."`
+
 ---
 
 ## Initial Setup (Scratch Org)
 
 1. [Set up CumulusCI](https://cumulusci.readthedocs.io/en/latest/tutorial.html)
-2. Run `cci flow run dev_org --org dev` to deploy this project (this deploys `force-app/`, the demo config under `unpackaged/config/dev-demo/`, and assigns the permission set)
+2. Run `cci flow run dev_org --org dev` to deploy this project (this deploys `force-app/`, the demo config under `unpackaged/config/dev-demo/`, and assigns both the `AWS_S3_Directory_Image` and `AWS_S3_Directory_Image_Developer_Fields` permission sets to System Administrators)
 3. Run `cci org browser dev` to open the org in your browser
 4. Complete the manual post-deploy steps below
 
@@ -83,6 +85,16 @@ This applies to both internal Lightning Experience users and Experience Cloud (c
 
 ---
 
+## Permission Set: AWS S3 Directory Image Developer Fields (dev-only)
+
+`unpackaged/config/dev-demo/permissionsets/AWS_S3_Directory_Image_Developer_Fields.permissionset-meta.xml` grants Read/Edit field-level security on the three Contact demo fields (`Directory_Image__c`, `Business_Directory_Image__c`, `Business_Directory_Person_Image__c`) used to showcase the component in this repo's scratch org.
+
+This is **not** part of the packaged feature — it exists purely so developers working in this scratch org don't have to manually grant FLS on the demo fields every time they rebuild the org. It's deployed via `deploy_dev_config` and assigned to System Administrators via `deploy_permission_set`, alongside `AWS_S3_Directory_Image`, whenever `cci flow run dev_org` or `cci flow run config_dev` runs.
+
+If you're integrating this feature into your own object/field, you don't need this permission set — see [Field-Level Security on the Target Image Field](#field-level-security-on-the-target-image-field) below for what your own permission set or profile needs to grant instead.
+
+---
+
 ## Field-Level Security on the Target Image Field
 
 The `imageField` passed into the component (e.g., `Directory_Image__c`) is **not** covered by the `AWS_S3_Directory_Image` permission set — the component is generic and can point at any field on any object, so field-level security for that field must be granted separately by whoever configures the component for a given use case.
@@ -93,6 +105,8 @@ As of API version 67.0, Apex database operations run in **user mode by default**
 - The running user needs **Edit** access on `imageField` — the controller writes the S3 URL (or clears it on delete) via DML.
 
 If either permission is missing, the update will fail with an insufficient-access error rather than silently succeeding or being skipped. Make sure whoever is assigned to interact with this LWC has both Read and Edit field-level security on the field configured for `imageField`, in addition to the `AWS_S3_Directory_Image` permission set.
+
+In this repo's scratch org, the `AWS_S3_Directory_Image_Developer_Fields` permission set (see above) already grants this for the demo Contact fields — you only need to grant it yourself for a field/object you configure on your own.
 
 ---
 
@@ -105,3 +119,7 @@ If either permission is missing, the update will fail with an insufficient-acces
 | Images visible in Lightning but not in community | Community user missing the permission set assignment | Assign `AWS_S3_Directory_Image` to the community user |
 | `Named Credential Id=null` in debug logs | Per User principal with no user-linked credentials | Switch the External Credential principal type to Named Principal (should already be correct per this repo's metadata) |
 | `NoSuchBucket` / `AWS S3 request failed: received status 404` | The Named Credential's `Url` parameter is still the placeholder value, or points at a bucket that doesn't exist | Complete [Post-Deploy Configuration step 1](#1-set-the-s3-bucket-url) — update both the Named Credential and CSP Trusted Site with your real bucket URL |
+| `A record Id is required.` / `A target image field is required.` | The component was invoked without a valid `recordId` or `imageField` (e.g. misconfigured on the page, or called directly with missing params) | Confirm the component's `record-id` and `image-field` design attributes are set on the FlexiPage/page layout |
+| `Unsupported file type. Only JPG, GIF, and PNG images are allowed.` | The uploaded file's content type isn't one of `image/jpeg`, `image/jpg`, `image/gif`, `image/png` | This is enforced server-side (not just the file picker's `accept` filter) since client-side validation can be bypassed; have the user upload a supported image format |
+| `The image field "X" does not exist on Y.` | `imageField` doesn't match an actual field API name on the target object | Fix the `image-field` value on the component to a valid field API name |
+| `You do not have permission to update the image field on this record.` | The running user lacks Edit field-level security on `imageField` | Grant Edit FLS on that field — see [Field-Level Security on the Target Image Field](#field-level-security-on-the-target-image-field) |
